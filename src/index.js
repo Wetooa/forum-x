@@ -8,36 +8,17 @@ $(function () {
   let currentPage = 0;
   let posts;
   let user;
-  let toastCount = 0;
 
   async function showToast(message, isError = false) {
-    const currentCount = toastCount++;
-    const toast = `
-<div id="toast${currentCount}" class="flex items-center w-full max-w-xs p-4 text-gray-500 bg-white rounded-lg shadow dark:text-gray-400 dark:bg-gray-800" role="alert">
-    <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-blue-500 bg-blue-100 rounded-lg dark:bg-blue-800 dark:text-blue-200">
-        <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 20">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.147 15.085a7.159 7.159 0 0 1-6.189 3.307A6.713 6.713 0 0 1 3.1 15.444c-2.679-4.513.287-8.737.888-9.548A4.373 4.373 0 0 0 5 1.608c1.287.953 6.445 3.218 5.537 10.5 1.5-1.122 2.706-3.01 2.853-6.14 1.433 1.049 3.993 5.395 1.757 9.117Z"/>
-        </svg>
-        <span class="sr-only">Fire icon</span>
-    </div>
-    <div class="ml-3 text-sm font-normal">${message}</div>
-    <button type="button" class="ml-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex items-center justify-center h-8 w-8 dark:text-gray-500 dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700" data-dismiss-target="#toast-default" aria-label="Close">
-        <span class="sr-only">Close</span>
-        <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
-        </svg>
-    </button>
-</div>
+    const toastId = `#toast`;
+    $(`${toastId}-message`).html(`
+      <p class="${isError && "text-red-300"} px-1">${message}</p>
+    `);
+    $(toastId).slideToggle("fast");
 
-  `;
-
-    let bodyElement = $("#body");
-    bodyElement.html(toast + bodyElement.innerHtml);
-
-    let timeout = setTimeout(() => {
-      bodyElement.remove(`#toast${currentCount}`);
-      clearTimeout(timeout);
-    }, 5000);
+    setTimeout(() => {
+      $(toastId).slideToggle("fast");
+    }, 1000);
   }
 
   async function getPosts() {
@@ -47,6 +28,7 @@ $(function () {
         url: `${DOMAIN_NAME}/forumGetPosts.php`,
         success: (data) => {
           posts = JSON.parse(data);
+          posts.sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
           const postsContainer = $("#posts-container");
 
           const start = POSTS_PER_PAGE * currentPage;
@@ -67,7 +49,7 @@ $(function () {
         },
       });
     } catch (err) {
-      alert(`${err.message}`);
+      showToast(`${err.message}`, true);
     }
   }
 
@@ -99,7 +81,7 @@ $(function () {
         },
       });
     } catch (err) {
-      alert(`${err.message}`);
+      showToast(`${err.message}`, true);
     }
   }
 
@@ -107,10 +89,11 @@ $(function () {
 
   async function createPost() {
     try {
-      const text = $("#text");
+      if (!user) throw new Error("You must be authenticated to create a post!");
+
+      const text = $("#text").val();
       const id = user.id;
 
-      if (!id) throw new Error("You must be authenticated to create a post!");
       if (text.length === 0) throw new Error("Post must not be empty!");
       if (text.length > MAX_CHARACTERS_ON_TEXT)
         throw new Error(
@@ -123,11 +106,11 @@ $(function () {
         data: { text, id },
         success: (data) => {
           if (!data) throw new Error("Post failed somehow...");
-          else alert("Post created successfully!");
+          else showToast("Post created successfully!");
         },
       });
     } catch (err) {
-      alert(`${err.message}`);
+      showToast(`${err.message}`, true);
     }
   }
 
@@ -135,13 +118,14 @@ $(function () {
 
   async function replyPost() {}
 
-  async function deletePost() {}
+  async function deleteReply() {}
 
   function handleToggleClass() {
     $("#auth-form").toggleClass("hidden");
   }
 
   // on load
+  $("#toast").hide();
   $("#auth-form").addClass("hidden");
   $("#create-user").on("click", createUser);
   $("#create-post").on("click", createPost);
