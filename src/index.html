@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Forum</title>
+
+    <!-- favicon -->
+    <link rel="shortcut icon" href="public/favicon.png" type="image/x-icon" />
+
+    <!-- jQuery -->
+    <script src="jquery-3.7.1.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="index.js"></script>
+
+    <!-- tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="globals.css" />
+  </head>
+  <body
+    class="flex flex-col items-center h-screen w-screen bg-black/90 text-white overflow-hidden"
+  >
+    <div class="flex max-w-6xl w-full">
+      <section
+        class="flex flex-col w-64 p-2 h-screen justify-between items-center"
+      >
+        <div>
+          <h3 class="font-bold text-3xl">Hyeumine X</h3>
+        </div>
+        <section class="flex flex-col items-center" id="auth-section">
+          <div class="flex flex-col gap-4" id="auth-form">
+            <div>
+              <label for="">Enter Username: </label>
+              <input
+                class="input"
+                type="text"
+                placeholder="Kira"
+                name="username"
+                id="username"
+              />
+            </div>
+
+            <div>
+              <label for="">Enter Firstname: </label>
+              <input
+                class="input"
+                type="text"
+                placeholder="Yoshikage"
+                name="firstname"
+                id="firstname"
+              />
+            </div>
+
+            <div>
+              <label for="">Enter Lastname: </label>
+              <input
+                class="input"
+                type="text"
+                placeholder="Kira"
+                name="lastname"
+                id="lastname"
+              />
+            </div>
+
+            <div class="flex justify-between">
+              <button
+                id="create-user"
+                class="btn bg-sky-600 px-4 py-2 rounded-lg hover:bg-sky-700 transition-all w-fit"
+              >
+                Register
+              </button>
+              <button
+                id="login-user"
+                class="btn bg-sky-600 px-4 py-2 rounded-lg hover:bg-sky-700 transition-all w-fit"
+              >
+                Login
+              </button>
+            </div>
+          </div>
+          <button
+            id="toggle-auth-form"
+            class="flex bg-black/40 px-4 py-2 rounded-full my-4 w-fit items-center justify-between gap-1"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth="{1.5}"
+              stroke="currentColor"
+              class="w-10 h-10"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z"
+              />
+            </svg>
+            <p id="username" class="font-bold">username</p>
+          </button>
+        </section>
+      </section>
+
+      <main
+        class="flex-1 h-screen border-x border-white/20 overflow-y-scroll scroll-m-0 scrollbar"
+      >
+        <section class="" id="posts-section">
+          <section>
+            <h3 class="font-bold text-3xl">Post</h3>
+
+            <div class="">
+              <textarea
+                class="bg-transparent text-white p-1 min-w-full focus:outline-none"
+                type="text"
+                name="text"
+                id="text"
+                placeholder="Share your thoughts!"
+              ></textarea>
+            </div>
+          </section>
+
+          <div id="posts-container"></div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>
