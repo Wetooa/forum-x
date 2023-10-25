@@ -25,3 +25,18 @@
   background-color: transparent;
   border-bottom: 1px solid rgba(255, 255, 255, 0.8);
 }
+
+.btn-tailwind {
+  --tw-bg-opacity: 1;
+  background-color: rgb(2 132 199 / var(--tw-bg-opacity));
+
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  transition: all 300ms ease-in-out;
+  width: fit-content;
+}
+
+.btn-tailwind:hover {
+  --tw-bg-opacity: 1;
+  background-color: rgb(3 105 161 / var(--tw-bg-opacity));
+}

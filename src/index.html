@@ -18,6 +18,7 @@
     <link rel="stylesheet" href="globals.css" />
   </head>
   <body
+    id="body"
     class="flex flex-col items-center h-screen w-screen bg-black/90 text-white overflow-hidden"
   >
     <div class="flex max-w-6xl w-full">
@@ -37,6 +38,7 @@
                 placeholder="Kira"
                 name="username"
                 id="username"
+                value="Kira"
               />
             </div>
 
@@ -48,6 +50,7 @@
                 placeholder="Yoshikage"
                 name="firstname"
                 id="firstname"
+                value="Yoshikage"
               />
             </div>
 
@@ -59,27 +62,18 @@
                 placeholder="Kira"
                 name="lastname"
                 id="lastname"
+                value="Kira"
               />
             </div>
 
             <div class="flex justify-between">
-              <button
-                id="create-user"
-                class="btn bg-sky-600 px-4 py-2 rounded-lg hover:bg-sky-700 transition-all w-fit"
-              >
-                Register
-              </button>
-              <button
-                id="login-user"
-                class="btn bg-sky-600 px-4 py-2 rounded-lg hover:bg-sky-700 transition-all w-fit"
-              >
-                Login
-              </button>
+              <button id="create-user" class="btn-tailwind">Register</button>
+              <button id="login-user" class="btn-tailwind">Login</button>
             </div>
           </div>
           <button
             id="toggle-auth-form"
-            class="flex bg-black/40 px-4 py-2 rounded-full my-4 w-fit items-center justify-between gap-1"
+            class="flex bg-black/40 px-4 py-2 rounded-full my-4 w-fit items-center justify-between gap-1 hover:bg-black/50"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -104,17 +98,17 @@
         class="flex-1 h-screen border-x border-white/20 overflow-y-scroll scroll-m-0 scrollbar"
       >
         <section class="" id="posts-section">
-          <section>
-            <h3 class="font-bold text-3xl">Post</h3>
-
-            <div class="">
+          <section class="mb-6" id="create-post-section">
+            <h3 class="font-bold text-3xl p-2">Post</h3>
+            <div class="flex flex-col items-end min-h-36 h-fit gap-2 p-2">
               <textarea
-                class="bg-transparent text-white p-1 min-w-full focus:outline-none"
+                class="bg-transparent text-white p-1 min-w-full border-b border-white/20 focus:outline-none focus:border-b-2"
                 type="text"
                 name="text"
                 id="text"
                 placeholder="Share your thoughts!"
               ></textarea>
+              <button class="btn-tailwind" id="create-post">Post</button>
             </div>
           </section>
 
