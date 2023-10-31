@@ -1,0 +1,27 @@
+{{#each data}}
+  {{!-- {{#if post}} --}}
+    <div
+      class="p-4 w-full break-words overflow-hidden border-t border-white/20 hover:bg-black/20 transition-all flex justify-between {{#if isOwner}} bg-black/10 {{/if}}"
+    >
+      <div class="w-[90%]">
+        <h3 class="text-xl font-bold">{{user}}</h3>
+        <p class="text-xs">{{date}}</p>
+        <p class="mt-2">{{post}}</p>
+
+        {{#if reply}}
+          <button class="w-full bg-sky-600">
+            View Replies ({{reply.length}})
+          </button>
+        {{/if}}
+      </div>
+
+      {{#if isOwner}}
+      <button
+        class="delete-button p-1 transition-all hover:bg-white/20 rounded-lg mx-auto w-fit h-fit hover:text-red-300"
+        value="{{id}}"
+      >⌫
+      </button>
+      {{/if}}
+    </div>
+  {{!-- {{/if}} --}}
+{{/each}}

