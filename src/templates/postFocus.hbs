@@ -1,0 +1,55 @@
+<div class="">
+  {{#each data}}
+    {{#if post}}
+      <div
+        class="p-4 w-full break-words overflow-hidden border-t border-white/20 hover:bg-black/20 transition-all flex justify-between {{#if isOwner}} bg-black/10 {{/if}}"
+      >
+        <div class="w-[90%]">
+          <div class="flex">
+            <h3 class="text-xl font-bold">{{user}}</h3>
+            <p class="text-xs text-black/80">{{date}}</p>
+          </div>
+          <p class="mt-2">{{post}}</p>
+
+          <div class="my-2 flex gap-1">
+            <input
+              class="bg-transparent text-white p-2 flex-1 border-b border-white/20 focus:outline-none focus:border-b-2"
+              type="text"
+              id="reply-input-{{id}}"
+              placeholder="Reply to post..."
+            >
+            <button value="{{id}}" class="btn-tailwind reply-button">Reply</button>
+          </div>
+
+          {{#if reply}}
+            {{#each reply}}
+              <div class="border-b border-white/20 pl-6 w-full p-2 pb-4 flex">
+                <div class="flex-1">
+                  <h3 class="text-xl font-bold">{{user}}</h3>
+                  <p class="text-xs">{{date}}</p>
+                  <p class="mt-1">{{reply}}</p>
+                </div>
+
+              {{#if isOwner}}
+                <button
+                  class="delete-reply-button p-1 transition-all hover:bg-white/20 rounded-lg mx-auto w-fit h-fit hover:text-red-300"
+                  value="{{id}}"
+                >⌫
+                </button>
+              {{/if}}
+              </div>
+            {{/each}}
+          {{/if}}
+        </div>
+
+        {{#if isOwner}}
+        <button
+          class="delete-button p-1 transition-all hover:bg-white/20 rounded-lg mx-auto w-fit h-fit hover:text-red-300"
+          value="{{id}}"
+        >⌫
+        </button>
+        {{/if}}
+      </div>
+    {{/if}}
+  {{/each}}
+</div>
