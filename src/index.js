@@ -45,8 +45,7 @@ $(function () {
         url: `${DOMAIN_NAME}/forumDeletePost.php?id=${id}`,
         success: (data) => {
           data = JSON.parse(data);
-          if (!data && !data.success)
-            throw new Error("Post deletion failed somehow...");
+          if (!data.success) throw new Error("Post deletion failed somehow...");
 
           getPosts();
           showToast("Post deleted successfully!");
@@ -160,10 +159,10 @@ $(function () {
         success: (data) => {
           data = JSON.parse(data);
 
-          if (!data && !data.success)
+          if (!data.success || !data.user)
             throw new Error("User login failed somehow...");
 
-          setUser(user);
+          setUser(data.user);
           showToast(`User logged in successfully!
           Welcome ${user.username}`);
         },
@@ -218,7 +217,7 @@ $(function () {
         success: (data) => {
           data = JSON.parse(data);
 
-          if (!data && !data.success)
+          if (!data.success)
             throw new Error("Reply creation failed somehow...");
           else showToast("Reply created successfully!");
 
